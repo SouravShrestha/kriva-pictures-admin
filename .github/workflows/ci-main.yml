@@ -45,6 +45,9 @@ jobs:
 
       - name: Build for Cloudflare Workers (OpenNext)
         run: npm run build:test
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Lint
         run: npm run lint
@@ -132,6 +135,9 @@ jobs:
 
       - name: Build for Cloudflare Workers (OpenNext)
         run: npm run build:prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Upload secrets to Worker
         run: |
