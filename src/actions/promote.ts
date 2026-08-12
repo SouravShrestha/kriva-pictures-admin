@@ -1,6 +1,6 @@
 "use server";
 
-import { kvGet, kvSet, KV_KEYS } from "@/lib/kv";
+import { kvGet, KV_KEYS } from "@/lib/kv";
 import { promoteBanners } from "./banners";
 import { promoteSections } from "./sections";
 import { promoteTestimonials } from "./testimonials";

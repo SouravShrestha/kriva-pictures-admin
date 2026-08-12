@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ImageGrid from "@/components/ImageGrid";
 import Button from "@/components/ui/Button";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -35,9 +35,19 @@ export default function EventImageManager({
   const [confirmingPurge, setConfirmingPurge] = useState(false);
   const { run, error, setError, isPending } = useServerAction();
 
-  // Re-sync when the server component re-renders after a router.refresh().
-  useEffect(() => setAssets(initialAssets), [initialAssets]);
-  useEffect(() => setCoverPublicId(initialCoverPublicId), [initialCoverPublicId]);
+  // Re-sync when the server component re-renders after a router.refresh(), by
+  // adjusting state during render instead of in an effect (avoids an extra
+  // render pass — see https://react.dev/learn/you-might-not-need-an-effect).
+  const [prevInitialAssets, setPrevInitialAssets] = useState(initialAssets);
+  if (initialAssets !== prevInitialAssets) {
+    setPrevInitialAssets(initialAssets);
+    setAssets(initialAssets);
+  }
+  const [prevInitialCoverPublicId, setPrevInitialCoverPublicId] = useState(initialCoverPublicId);
+  if (initialCoverPublicId !== prevInitialCoverPublicId) {
+    setPrevInitialCoverPublicId(initialCoverPublicId);
+    setCoverPublicId(initialCoverPublicId);
+  }
 
   const handleUpload = async (fileDataUrl: string) => {
     await run(async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -37,14 +37,8 @@ export default function ImageGrid({
   onSetCover,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [localAssets, setLocalAssets] = useState(assets);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const { showLoading, hideLoading, setProgress } = useLoading();
-
-  // Keep local state in sync when the parent's assets change (e.g. after a delete).
-  useEffect(() => {
-    setLocalAssets(assets);
-  }, [assets]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -95,14 +89,14 @@ export default function ImageGrid({
         />
       </div>
 
-      {localAssets.length === 0 && (
+      {assets.length === 0 && (
         <div className="text-sm text-text-subtle py-8 text-center border-2 border-dashed border-border rounded-lg">
           No images yet. Upload one above.
         </div>
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {localAssets.map((asset) => {
+        {assets.map((asset) => {
           const isCover = !!coverPublicId && coverPublicId === asset.publicId;
           return (
             <div

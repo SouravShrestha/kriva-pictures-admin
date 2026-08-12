@@ -67,7 +67,7 @@ export default function EventList({ category }: { category: GalleryCategoryConfi
   const move = (index: number, delta: -1 | 1) =>
     run(() => reorderEvents(category.slug, movedSlugs(events, index, delta)));
 
-  const useAsCategoryCover = (ev: GalleryEventConfig) =>
+  const setEventAsCategoryCover = (ev: GalleryEventConfig) =>
     run(() => setCategoryCover(category.slug, ev.cover ?? null));
 
   return (
@@ -216,7 +216,7 @@ export default function EventList({ category }: { category: GalleryCategoryConfi
                       size="sm"
                       variant="ghost"
                       disabled={isPending}
-                      onClick={() => useAsCategoryCover(ev)}
+                      onClick={() => setEventAsCategoryCover(ev)}
                       aria-label={`Use ${ev.name}'s cover as the category cover`}
                       title="Use this event's cover as the category cover"
                     >

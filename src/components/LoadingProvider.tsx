@@ -8,6 +8,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -35,15 +36,22 @@ interface LoadingContextValue {
 
 const LoadingContext = createContext<LoadingContextValue | null>(null);
 
+/** This "mounted?" value never changes after hydration, so there's nothing to subscribe to. */
+function subscribeToNothing() {
+  return () => {};
+}
+
 export default function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [count, setCount] = useState(0);
   // Initial page load: show the overlay until the app has mounted client-side.
-  const [initialLoad, setInitialLoad] = useState(true);
+  // useSyncExternalStore lets us read "have we mounted?" without the extra
+  // render pass a useEffect-driven state flip would cause.
+  const initialLoad = useSyncExternalStore(
+    subscribeToNothing,
+    () => false,
+    () => true
+  );
   const [progress, setProgress] = useState<LoadingProgress | null>(null);
-
-  useEffect(() => {
-    setInitialLoad(false);
-  }, []);
 
   const showLoading = useCallback(() => {
     setCount((c) => c + 1);

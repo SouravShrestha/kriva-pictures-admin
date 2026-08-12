@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
 
@@ -27,12 +27,39 @@ export const themeInitScript = `
 })();
 `;
 
+// The theme lives on the DOM (the `dark` class on <html>), set synchronously by
+// themeInitScript before hydration. We treat that class as the external store
+// instead of mirroring it into useState via an effect, which would cause an
+// extra render and risk a flash between the "light" default and the real value.
+const themeListeners = new Set<() => void>();
+
+function subscribeToThemeClass(onStoreChange: () => void) {
+  themeListeners.add(onStoreChange);
+  return () => themeListeners.delete(onStoreChange);
+}
+
+function getThemeSnapshot(): Theme {
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+function getServerThemeSnapshot(): Theme {
+  return "light";
+}
+
+function applyTheme(next: Theme) {
+  document.documentElement.classList.toggle("dark", next === "dark");
+  try {
+    localStorage.setItem(STORAGE_KEY, next);
+  } catch {
+    // ignore write errors (private mode, quota, etc.)
+  }
+  themeListeners.forEach((listener) => listener());
+}
+
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const theme = useSyncExternalStore(subscribeToThemeClass, getThemeSnapshot, getServerThemeSnapshot);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setThemeState(isDark ? "dark" : "light");
     // Enable transitions only after the initial theme is applied, to avoid a flash/animation on load.
     requestAnimationFrame(() => {
       document.documentElement.classList.add("theme-ready");
@@ -40,18 +67,12 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   }, []);
 
   const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
-    document.documentElement.classList.toggle("dark", next === "dark");
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore write errors (private mode, quota, etc.)
-    }
+    applyTheme(next);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [theme, setTheme]);
+    applyTheme(getThemeSnapshot() === "dark" ? "light" : "dark");
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
