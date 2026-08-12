@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Restore dependencies
@@ -54,23 +54,16 @@ jobs:
 
       - name: Upload secrets to Worker
         run: |
-          printf '{\n  "ADMIN_PASSWORD": "%s",\n  "SESSION_SECRET": "%s",\n  "CLOUDINARY_CLOUD_NAME": "%s",\n  "CLOUDINARY_API_KEY": "%s",\n  "CLOUDINARY_API_SECRET": "%s",\n  "CLOUDINARY_ROOT_FOLDER_TEST": "%s",\n  "CLOUDINARY_ROOT_FOLDER_PROD": "%s",\n  "SITE_TEST_URL": "%s",\n  "SITE_PROD_URL": "%s"\n}' \
-            "$ADMIN_PASSWORD" "$SESSION_SECRET" "$CLOUDINARY_CLOUD_NAME" \
-            "$CLOUDINARY_API_KEY" "$CLOUDINARY_API_SECRET" \
-            "$CLOUDINARY_ROOT_FOLDER_TEST" "$CLOUDINARY_ROOT_FOLDER_PROD" \
-            "$SITE_TEST_URL" "$SITE_PROD_URL" | npx wrangler secret bulk --env test
+          printf '{\n  "ADMIN_PASSWORD": "%s",\n  "SESSION_SECRET": "%s",\n  "CLOUDINARY_API_KEY": "%s",\n  "CLOUDINARY_API_SECRET": "%s"\n}' \
+            "$ADMIN_PASSWORD" "$SESSION_SECRET" \
+            "$CLOUDINARY_API_KEY" "$CLOUDINARY_API_SECRET" | npx wrangler secret bulk --env test
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          CLOUDINARY_ROOT_FOLDER_TEST: ${{ secrets.CLOUDINARY_ROOT_FOLDER_TEST }}
-          CLOUDINARY_ROOT_FOLDER_PROD: ${{ secrets.CLOUDINARY_ROOT_FOLDER_PROD }}
-          SITE_TEST_URL: ${{ secrets.SITE_TEST_URL }}
-          SITE_PROD_URL: ${{ secrets.SITE_PROD_URL }}
 
       - name: Deploy to Cloudflare Workers TEST
         uses: cloudflare/wrangler-action@v4
@@ -114,7 +107,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Restore dependencies
