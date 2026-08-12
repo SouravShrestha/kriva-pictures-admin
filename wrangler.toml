@@ -1,0 +1,42 @@
+name = "kriva-pictures-admin-prod"
+main = ".open-next/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[vars]
+NEXT_PUBLIC_ENV = "PROD"
+
+[[kv_namespaces]]
+binding = "KP_DATA_TEST"
+id = "243da426f6be46adb50d1626231e592c"
+remote = true
+
+[[kv_namespaces]]
+binding = "KP_DATA_PROD"
+id = "4caca2ea2eff48eb8826d4f300a213c8"
+
+[env.test]
+name = "kriva-pictures-admin-test"
+
+[env.test.vars]
+NEXT_PUBLIC_ENV = "TEST"
+CLOUDINARY_CLOUD_NAME = "dxzbodm5m"
+CLOUDINARY_ROOT_FOLDER_TEST = "test"
+CLOUDINARY_ROOT_FOLDER_PROD = "prod"
+SITE_TEST_URL = "https://test.krivapictures.com.au"
+SITE_PROD_URL = "https://krivapictures.com.au"
+
+[[env.test.kv_namespaces]]
+binding = "KP_DATA_TEST"
+id = "243da426f6be46adb50d1626231e592c"
+remote = true
+
+[[env.test.kv_namespaces]]
+binding = "KP_DATA_PROD"
+id = "4caca2ea2eff48eb8826d4f300a213c8"

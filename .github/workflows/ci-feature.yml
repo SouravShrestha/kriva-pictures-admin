@@ -1,0 +1,77 @@
+name: CI Feature
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci-feature:
+    runs-on: ubuntu-latest
+    environment: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Restore dependencies
+        run: npm ci
+
+      - name: Create .env.test
+        run: |
+          echo "NEXT_PUBLIC_ENV=TEST" >> .env.test
+          echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env.test
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env.test
+          echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env.test
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env.test
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env.test
+          echo "CLOUDINARY_ROOT_FOLDER_TEST=${{ secrets.CLOUDINARY_ROOT_FOLDER_TEST }}" >> .env.test
+          echo "CLOUDINARY_ROOT_FOLDER_PROD=${{ secrets.CLOUDINARY_ROOT_FOLDER_PROD }}" >> .env.test
+          echo "SITE_TEST_URL=${{ secrets.SITE_TEST_URL }}" >> .env.test
+          echo "SITE_PROD_URL=${{ secrets.SITE_PROD_URL }}" >> .env.test
+
+      - name: Build for Cloudflare Workers (OpenNext)
+        run: npm run build:test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Upload secrets to Worker
+        run: |
+          printf '{\n  "ADMIN_PASSWORD": "%s",\n  "SESSION_SECRET": "%s",\n  "CLOUDINARY_CLOUD_NAME": "%s",\n  "CLOUDINARY_API_KEY": "%s",\n  "CLOUDINARY_API_SECRET": "%s",\n  "CLOUDINARY_ROOT_FOLDER_TEST": "%s",\n  "CLOUDINARY_ROOT_FOLDER_PROD": "%s",\n  "SITE_TEST_URL": "%s",\n  "SITE_PROD_URL": "%s"\n}' \
+            "$ADMIN_PASSWORD" "$SESSION_SECRET" "$CLOUDINARY_CLOUD_NAME" \
+            "$CLOUDINARY_API_KEY" "$CLOUDINARY_API_SECRET" \
+            "$CLOUDINARY_ROOT_FOLDER_TEST" "$CLOUDINARY_ROOT_FOLDER_PROD" \
+            "$SITE_TEST_URL" "$SITE_PROD_URL" | npx wrangler secret bulk --env test
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_ROOT_FOLDER_TEST: ${{ secrets.CLOUDINARY_ROOT_FOLDER_TEST }}
+          CLOUDINARY_ROOT_FOLDER_PROD: ${{ secrets.CLOUDINARY_ROOT_FOLDER_PROD }}
+          SITE_TEST_URL: ${{ secrets.SITE_TEST_URL }}
+          SITE_PROD_URL: ${{ secrets.SITE_PROD_URL }}
+
+      - name: Deploy to Cloudflare Workers TEST
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env test

@@ -1,0 +1,6 @@
+.env*
+!.env.example
+.wrangler
+.open-next
+node_modules
+.next
