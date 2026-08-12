@@ -24,6 +24,9 @@ id = "4caca2ea2eff48eb8826d4f300a213c8"
 [env.test]
 name = "kriva-pictures-admin-test"
 
+[env.production]
+name = "kriva-pictures-admin-prod"
+
 [env.test.vars]
 NEXT_PUBLIC_ENV = "TEST"
 CLOUDINARY_CLOUD_NAME = "dxzbodm5m"
